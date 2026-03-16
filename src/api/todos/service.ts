@@ -5,11 +5,6 @@ import { trashService } from '../trash/service';
 import { CreateTodoInput, UpdateTodoInput } from './dto';
 import { todoRepository } from './repository';
 
-const relationOne = <T>(value: T | T[] | null | undefined): T | undefined => {
-  if (!value) return undefined;
-  return Array.isArray(value) ? value[0] : value;
-};
-
 const priorityRank: Record<string, number> = {
   HIGH: 3,
   MEDIUM: 2,
@@ -27,9 +22,7 @@ export const todoService = {
   ) {
     const todos = await todoRepository.listTodos(userId, options.upcomingOnly);
 
-    const pendingOnly = todos.filter((todo) => relationOne(todo.tasks)?.status === 'PENDING');
-
-    const sorted = [...pendingOnly].sort((a, b) => {
+    const sorted = [...todos].sort((a, b) => {
       if (options.sortBy === 'priority') {
         const rankA = priorityRank[a.priority] ?? 0;
         const rankB = priorityRank[b.priority] ?? 0;
