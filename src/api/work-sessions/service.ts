@@ -27,15 +27,10 @@ const normalizeBlocker = (reason?: string) => {
 
 export const workSessionService = {
   async getActiveSession(userId: string) {
-    return workSessionRepository.getActiveSession(userId);
+    return workSessionRepository.getActiveSessions(userId);
   },
 
   async startWork(userId: string, todoId: string) {
-    const activeSession = await workSessionRepository.getActiveSession(userId);
-    if (activeSession) {
-      throw new HttpError(StatusCodes.CONFLICT, 'Active work session already exists. Pause/complete it first.');
-    }
-
     const todo = await todoRepository.findById(todoId, userId);
     if (!todo) {
       throw new HttpError(StatusCodes.NOT_FOUND, 'Todo not found');
@@ -53,6 +48,11 @@ export const workSessionService = {
 
     if (task?.status === TaskStatus.COMPLETED) {
       throw new HttpError(StatusCodes.BAD_REQUEST, 'Completed tasks cannot start work until reopened.');
+    }
+
+    const activeSession = await workSessionRepository.getActiveSessionForTask(userId, todo.task_id);
+    if (activeSession) {
+      throw new HttpError(StatusCodes.CONFLICT, 'Active work session already exists for this task.');
     }
 
     const startTime = new Date().toISOString();

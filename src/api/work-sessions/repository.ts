@@ -1,13 +1,29 @@
 import { supabase } from '../../db/supabase';
 
 export const workSessionRepository = {
-  async getActiveSession(userId: string) {
+  async getActiveSessions(userId: string) {
     const { data, error } = await supabase
       .from('work_sessions')
       .select(
         'id, user_id, task_id, todo_id, start_time, stop_time, duration_seconds, status, created_at, tasks(id, title, project_id, projects(name)), todos:todo_plans(id, planned_date, planned_time, priority)',
       )
       .eq('user_id', userId)
+      .eq('status', 'RUNNING')
+      .is('stop_time', null)
+      .order('start_time', { ascending: false });
+
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  async getActiveSessionForTask(userId: string, taskId: string) {
+    const { data, error } = await supabase
+      .from('work_sessions')
+      .select(
+        'id, user_id, task_id, todo_id, start_time, stop_time, duration_seconds, status, created_at, tasks(id, title, project_id, projects(name)), todos:todo_plans(id, planned_date, planned_time, priority)',
+      )
+      .eq('user_id', userId)
+      .eq('task_id', taskId)
       .eq('status', 'RUNNING')
       .is('stop_time', null)
       .order('start_time', { ascending: false })

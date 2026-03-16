@@ -93,7 +93,7 @@ export const taskService = {
     }
 
     if (payload.status === TaskStatus.PENDING) {
-      const activeSession = await workSessionRepository.getActiveSession(actorId);
+      const activeSession = await workSessionRepository.getActiveSessionForTask(actorId, taskId);
       if (activeSession && activeSession.task_id === taskId) {
         const stopTime = new Date().toISOString();
         const durationSeconds = Math.max(
@@ -132,7 +132,7 @@ export const taskService = {
     }
 
     if (payload.status === TaskStatus.RUNNING) {
-      const activeSession = await workSessionRepository.getActiveSession(actorId);
+      const activeSession = await workSessionRepository.getActiveSessionForTask(actorId, taskId);
 
       if (!activeSession) {
         const latestTodo = await workSessionRepository.findLatestTodoByTask(actorId, taskId);
